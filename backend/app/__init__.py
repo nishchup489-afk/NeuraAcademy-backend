@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 load_dotenv()
-from flask import Flask
+from flask import Flask 
 from .extensions import db , migrate , mail , login_manager , cors , ph , limiter
 from .config import BaseConfig , TestingConfig , ProductionConfig , DevelopmentConfig
 from flask_talisman import Talisman

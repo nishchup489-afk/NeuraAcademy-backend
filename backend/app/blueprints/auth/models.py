@@ -18,7 +18,7 @@ class User(UserMixin , db.Model):
 class FailedLogin(db.Model):
     id = db.Column(UUID(as_uuid=True) , primary_key = True , default = uuid.uuid4)
     email = db.Column(db.String(200) , unique=True , nullable = False)
-    timestamp = db.Column(db.DateTime , default = datetime.dateime.now)
+    timestamp = db.Column(db.DateTime , default = datetime.now)
     ip = db.Column(db.String(50))
 
 
