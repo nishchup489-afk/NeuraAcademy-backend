@@ -6,6 +6,7 @@ from .config import BaseConfig , TestingConfig , ProductionConfig , DevelopmentC
 from flask_talisman import Talisman
 import os
 
+
 def create_app(config_name = "dev"):
     app = Flask(__name__)
 
@@ -36,6 +37,13 @@ def create_app(config_name = "dev"):
 
 
     # TODO: use Redis in production
+
+    #blueprints
+    from .blueprints.auth.routes import auth_bp
+
+
+    #register blueprint
+    app.register_blueprint(auth_bp)
 
 
     return app

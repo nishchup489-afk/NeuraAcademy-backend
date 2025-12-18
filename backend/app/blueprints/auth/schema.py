@@ -8,7 +8,7 @@ class RegisterSchema(Schema):
     email = fields.Email(required=True)
     username = fields.String(required=True)
     password = fields.String(required=True , validate=validate.Length(min=8))
-    confirmed = fields.String(required=True , validate=validate.Equal("password"))
+    confirmed = fields.String(required=True , validate=validate.Length(min=8))
 
     @validates_schema
     def validate_password(self , data , **kwargs):

@@ -5,7 +5,7 @@ import uuid
 from sqlalchemy.dialects.postgresql import UUID
 
 class User(UserMixin , db.Model):
-    __tablename__ = "user"
+    __tablename__ = "users"
 
     id = db.Column(UUID(as_uuid=True) , primary_key = True , default= uuid.uuid4)
     email = db.Column(db.String(200) , nullable=False , unique=True)

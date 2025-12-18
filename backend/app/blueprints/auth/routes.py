@@ -1,8 +1,9 @@
-from flask import Blueprint , request , jsonify
-from extensions import db , ph
-from models import User
+from flask import Blueprint, request, jsonify
+from app.extensions import db, ph
+from app.blueprints.auth.models import User
 from marshmallow import ValidationError
-from auth.schema import LoginSchema , RegisterSchema
+from app.blueprints.auth.schema import LoginSchema, RegisterSchema
+
 
 auth_bp = Blueprint("auth" , __name__ , url_prefix="/api/auth")
 login_schema = LoginSchema()
@@ -34,7 +35,7 @@ def register():
     except ValidationError as e:
         return jsonify(e.messages) , 400
     
-    existing = User.query.filter_by(data['email']).first()
+    existing = User.query.filter_by(email = data['email']).first()
     if existing:
         return jsonify({"message": "Email already exist"}) , 409
     
@@ -44,6 +45,8 @@ def register():
 
     db.session.add(user)
     db.session.commit()
+
+    return jsonify({"message" : "Registered successfully"}) , 201
 
 
 
