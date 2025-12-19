@@ -57,6 +57,8 @@ class BaseConfig:
 
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
+    FRONTEND_URL = "http://localhost:5173"
+
 
 class ProductionConfig(BaseConfig):
     SESSION_COOKIE_SECURE = True

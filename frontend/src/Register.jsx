@@ -6,7 +6,7 @@ export default function Register(){
         email : "" , 
         username : "" , 
         password : "" , 
-        confirmed : ""
+        confirm_password : ""
     })
 
     const  handleChange = (e) =>
@@ -36,10 +36,10 @@ export default function Register(){
         <>
             <h1>Register</h1><br />
             <form onSubmit={handleSubmit}>
-                <input type="email" name="email" placeholder="Enter your email" onChange={handleChange} required /><br />
-                <input type="username" name="username" placeholder="Enter a username" onChange={handleChange} required /><br />
+                <input type="email" name="email" value={form.email} placeholder="Enter your email" onChange={handleChange} required /><br />
+                <input type="text" name="username" placeholder="Enter a username" onChange={handleChange} required /><br />
                 <input type="password" name="password" placeholder="Enter your password" onChange={handleChange} required /><br />
-                <input type="password" name="confirmed" placeholder="Confirm your password" onChange={handleChange} required /><br />
+                <input type="password" name="confirm_password" placeholder="Confirm your password" onChange={handleChange} required /><br />
 
                 <button type="submit">Register</button>
 
