@@ -1,11 +1,11 @@
-from flask import Blueprint, request, jsonify , redirect , url_for
+from flask import Blueprint, request, jsonify , redirect , url_for , session
 from app.extensions import db, ph
 from app.blueprints.auth.models import User
 from marshmallow import ValidationError
 from app.blueprints.auth.schema import LoginSchema, RegisterSchema , ForgotPasswordSchema , ResetPasswordSchema
 from app.utils.emails import send_confirmation_token , serializer , send_password_reset_token
 from app.config import DevelopmentConfig
-
+from flask_login import login_user
 
 
 
@@ -35,10 +35,21 @@ def login():
     
     try:
         ph.verify(user.password, data["password"])
-    except VerifyMismatchError as e:
+    except VerifyMismatchError as e: # type: ignore
         return jsonify({"message": "Wrong password"}), 400
     
-    return jsonify({"message" : "Login successful"}) , 200
+    session['user_id'] = user.id
+    session['role'] = user.role
+    session.permanent = True
+    login_user(user)
+    
+    return jsonify({"message" : "Login successful" , 
+                    "user" : {
+                        "id" : user.id , 
+                        "email" : user.email , 
+                        "role" : user.role
+                    } 
+                    }) , 200
 
 
 
@@ -135,4 +146,6 @@ def confirm(token):
     
     user.confirmed = True
     db.session.commit()
+    login_user(user)
+
     return jsonify({"message": "Email confirmed successfully"}), 200

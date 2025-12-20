@@ -5,7 +5,7 @@ from .extensions import db , migrate , mail , login_manager , cors , ph , limite
 from .config import BaseConfig , TestingConfig , ProductionConfig , DevelopmentConfig
 from flask_talisman import Talisman
 import os
-
+from app.blueprints.auth.models import User
 
 def create_app(config_name = "dev"):
     app = Flask(__name__)
@@ -35,15 +35,26 @@ def create_app(config_name = "dev"):
     login_manager.login_view = "auth.login"
     login_manager.session_protection = "strong"
 
+    
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(user_id)
+
+
 
     # TODO: use Redis in production
 
     #blueprints
     from .blueprints.auth.routes import auth_bp
+    from .blueprints.student.student_dashboard import student_bp
+    from .blueprints.profile.routes import profile_bp
 
 
     #register blueprint
     app.register_blueprint(auth_bp)
+    app.register_blueprint(student_bp)
+    app.register_blueprint(profile_bp)
 
 
     return app

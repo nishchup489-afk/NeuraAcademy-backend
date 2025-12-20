@@ -12,8 +12,16 @@ class User(UserMixin , db.Model):
     username = db.Column(db.String(100) , nullable=False)
     password = db.Column(db.String(200) , nullable=False)
     confirmed = db.Column(db.Boolean , default=False)
-    role = db.Column(db.String(50) , default="user" )
-    timestamp = db.Column(db.DateTime , default = datetime.now)
+    role = db.Column(db.String(50) , default="student" , nullable=False , index=True  )
+    created_at = db.Column(db.DateTime , default = datetime.utcnow)
+    
+    profile = db.relationship(
+        "StudentProfile",
+        uselist = False , 
+        back_populates = "user",
+        cascade = "all , delete-orphan"
+    )
+
 
 class FailedLogin(db.Model):
     id = db.Column(UUID(as_uuid=True) , primary_key = True , default = uuid.uuid4)

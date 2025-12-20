@@ -8,7 +8,6 @@ from argon2 import PasswordHasher
 from flask_cors import CORS
 
 
-
 db = SQLAlchemy()
 migrate = Migrate()
 mail = Mail()

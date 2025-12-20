@@ -1,7 +1,9 @@
 import { useState } from "react";
 import api from "./api/axios";
 
+
 export default function Register(){
+  
     const [form , setForm] = useState({
         email : "" , 
         username : "" , 
@@ -21,11 +23,17 @@ export default function Register(){
         try{
             const res = await api.post("/auth/register" , form)
             console.log(res.data)
-            alert("registered successfully")
+            console.log("registered successfully")
+            alert("registered successfully , check your email")
+
+
+
         }catch(err){
             console.error(err.response?.data || err.message)
             console.log("error logging in")
         }
+
+        
 
 
 
