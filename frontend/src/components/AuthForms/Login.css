@@ -1,0 +1,271 @@
+/* ================== GENERAL RESET ================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #f8fafc;
+  color: #1f2937;
+  line-height: 1.6;
+}
+
+/* ================== HEADER ================== */
+.landing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 3rem;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.landing-header .logo {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1e3a8a;
+}
+
+.landing-header .nav-links a {
+  margin: 0 1rem;
+  color: #1f2937;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.landing-header .nav-links a:hover {
+  color: #2563eb;
+}
+
+.auth-actions button {
+  margin-left: 1rem;
+}
+
+.auth-actions .btn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.auth-actions .btn.primary {
+  background-color: #2563eb;
+  color: #fff;
+}
+
+.auth-actions .btn.primary:hover {
+  background-color: #1e40af;
+}
+
+.auth-actions .btn.ghost {
+  background-color: transparent;
+  border: 2px solid #2563eb;
+  color: #2563eb;
+}
+
+.auth-actions .btn.ghost:hover {
+  background-color: #2563eb;
+  color: #fff;
+}
+
+/* ================== HERO ================== */
+.hero-section {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4rem 3rem;
+  background: linear-gradient(120deg, #e0f2fe, #f0f9ff);
+}
+
+.hero-content {
+  flex: 1 1 500px;
+  max-width: 600px;
+}
+
+.hero-content h1 {
+  font-size: 2.5rem;
+  color: #1e3a8a;
+  margin-bottom: 1rem;
+}
+
+.hero-content p {
+  font-size: 1.1rem;
+  color: #475569;
+  margin-bottom: 2rem;
+}
+
+.hero-cta button {
+  margin-right: 1rem;
+  padding: 0.7rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.hero-cta .primary {
+  background-color: #2563eb;
+  color: #fff;
+}
+
+.hero-cta .primary:hover {
+  background-color: #1e40af;
+}
+
+.hero-cta .outline {
+  background-color: transparent;
+  border: 2px solid #2563eb;
+  color: #2563eb;
+}
+
+.hero-cta .outline:hover {
+  background-color: #2563eb;
+  color: #fff;
+}
+
+/* ================== ROLE CARDS ================== */
+.roles-section {
+  padding: 4rem 3rem;
+  text-align: center;
+}
+
+.roles-section h2 {
+  font-size: 2rem;
+  color: #1e3a8a;
+  margin-bottom: 2rem;
+}
+
+.roles-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+}
+
+.role-card {
+  background-color: #ffffff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  width: 250px;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.role-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+}
+
+.role-card h3 {
+  font-size: 1.4rem;
+  color: #1e3a8a;
+  margin-bottom: 0.8rem;
+}
+
+.role-card p {
+  font-size: 0.95rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
+/* ================== FEATURES ================== */
+.features-section {
+  padding: 4rem 3rem;
+  background-color: #f1f5f9;
+  text-align: center;
+}
+
+.features-section h2 {
+  font-size: 2rem;
+  color: #1e3a8a;
+  margin-bottom: 2rem;
+}
+
+.features-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+}
+
+.feature {
+  background-color: #fff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  width: 220px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  transition: all 0.3s;
+}
+
+.feature:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.1);
+}
+
+.feature h4 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  color: #1e3a8a;
+}
+
+/* ================== FINAL CTA ================== */
+.final-cta {
+  padding: 4rem 3rem;
+  background-color: #2563eb;
+  color: #fff;
+  text-align: center;
+  border-radius: 12px;
+  margin: 4rem 3rem;
+}
+
+.final-cta h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.final-cta p {
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+.final-cta .btn.large {
+  padding: 0.8rem 2rem;
+  font-size: 1.1rem;
+  border-radius: 8px;
+}
+
+/* ================== FOOTER ================== */
+.landing-footer {
+  text-align: center;
+  padding: 2rem 1rem;
+  background-color: #1e3a8a;
+  color: #fff;
+}
+
+/* ================== RESPONSIVE ================== */
+@media screen and (max-width: 768px) {
+  .hero-section {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .roles-grid, .features-grid {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .final-cta {
+    margin: 2rem 1rem;
+  }
+}

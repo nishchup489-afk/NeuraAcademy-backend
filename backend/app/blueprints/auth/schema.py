@@ -1,14 +1,17 @@
-from marshmallow import Schema , fields , validate , validates_schema , ValidationError
+from marshmallow import Schema , fields , validate , validates_schema , ValidationError , INCLUDE
 
 class LoginSchema(Schema):
     email = fields.Email(required=True)
     password = fields.String(required=True , validate=validate.Length(min=8))
     
 class RegisterSchema(Schema):
+    class Meta:
+        unknown = INCLUDE
     email = fields.Email(required=True)
     username = fields.String(required=True)
     password = fields.String(required=True , validate=validate.Length(min=8))
     confirm_password = fields.String(required=True , validate=validate.Length(min=8))
+
 
     @validates_schema
     def validate_password(self , data , **kwargs):

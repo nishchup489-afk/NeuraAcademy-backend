@@ -41,7 +41,7 @@ class BaseConfig:
     #SESSION
     SESSION_COOKIE_NAME = "neuraacademy_session"
     SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = "None"
+    SESSION_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SECURE = False
     SESSION_COOKIE_DOMAIN = "localhost"
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)

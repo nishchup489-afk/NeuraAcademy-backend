@@ -1,11 +1,11 @@
 from dotenv import load_dotenv
 load_dotenv()
-from flask import Flask 
+from flask import Flask , jsonify
 from .extensions import db , migrate , mail , login_manager , cors , ph , limiter
 from .config import BaseConfig , TestingConfig , ProductionConfig , DevelopmentConfig
 from flask_talisman import Talisman
 import os
-from app.blueprints.auth.models import User
+from app.models import User
 
 def create_app(config_name = "dev"):
     app = Flask(__name__)
@@ -32,14 +32,18 @@ def create_app(config_name = "dev"):
 
 
     # login manager 
-    login_manager.login_view = "auth.login"
+    login_manager.login_view = None
     login_manager.session_protection = "strong"
 
-    
+    @login_manager.unauthorized_handler
+    def unauthorized():
+        return jsonify({"message": "Authentication required"}), 401
+
+        
 
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(user_id)
+        return db.session.get(User , (user_id))
 
 
 

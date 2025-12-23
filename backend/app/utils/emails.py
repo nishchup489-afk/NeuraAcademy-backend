@@ -16,6 +16,12 @@ def send_confirmation_token(user) :
         recipients= [user.email]
     )
 
+    print("\n" + "="*60)
+    print("📧 EMAIL CONFIRMATION LINK (DEV MODE)")
+    print(confirm_url)
+    print("="*60 + "\n")
+    return confirm_url
+
     msg.body = f"Please confirm your account by clicking the link: {confirm_url}"
     msg.html = f"""
         <body style="margin:0; padding:0; background-color:#0b0f19; font-family: Arial, Helvetica, sans-serif; color:#e5e7eb;">
@@ -102,7 +108,8 @@ def send_confirmation_token(user) :
          </body>
     """
 
-    mail.send(msg)
+    # mail.send(msg)
+    
     return token
 
 
