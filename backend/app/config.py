@@ -41,9 +41,12 @@ class BaseConfig:
     #SESSION
     SESSION_COOKIE_NAME = "neuraacademy_session"
     SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = "Lax"
+    # For local development with frontend on a different port, allow cross-site cookies.
+    # Modern browsers require SameSite=None and Secure for cross-site cookies; localhost is treated as secure by most browsers.
+    SESSION_COOKIE_SAMESITE = None
     SESSION_COOKIE_SECURE = False
-    SESSION_COOKIE_DOMAIN = "localhost"
+    # Do not force cookie domain; leave as host-only to avoid cross-port issues
+    SESSION_COOKIE_DOMAIN = None
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
 
     #CORS

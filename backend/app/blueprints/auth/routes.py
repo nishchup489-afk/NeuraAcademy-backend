@@ -49,6 +49,7 @@ def login_with_role(expected_role):
 
     login_user(user , remember = True) 
     session['role'] = user.role
+    session['user_id'] = str(user.id)
     session.permanent = True
     user.last_login = datetime.utcnow()
     db.session.commit()
@@ -222,6 +223,10 @@ def confirm(token):
     user.role_id = student_id
     db.session.commit()
     login_user(user)
+    # ensure session keys are set after confirmation login
+    session['role'] = user.role
+    session['user_id'] = str(user.id)
+    session.permanent = True
 
     return jsonify({"message": "Email confirmed successfully" , 
                     "role_id" : student_id }), 200

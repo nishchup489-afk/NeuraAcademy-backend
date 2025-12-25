@@ -151,3 +151,5 @@ def parent_profile():
         "message": "Parent profile updated successfully",
         "profile": parent_schema.dump(profile)
     })
+
+

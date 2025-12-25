@@ -53,12 +53,15 @@ def create_app(config_name = "dev"):
     from .blueprints.auth.routes import auth_bp
     from .blueprints.student.student_dashboard import student_bp
     from .blueprints.profile.routes import profile_bp
+    from .blueprints.courses.routes import register_course_blueprints
+    from .blueprints.student.routes import student_bp as student_api_bp
 
 
     #register blueprint
     app.register_blueprint(auth_bp)
     app.register_blueprint(student_bp)
+    app.register_blueprint(student_api_bp)
     app.register_blueprint(profile_bp)
-
+    register_course_blueprints(app)
 
     return app
