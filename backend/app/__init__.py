@@ -16,6 +16,11 @@ def create_app(config_name = "deploy"):
         app.config.from_object(TestingConfig)
     elif config_name == "deploy":
         app.config.from_object(ProductionConfig)
+
+    @app.route("/", methods=["GET", "HEAD"])
+    def health():
+        return {"status": "ok", "service": "NeuraAcademy API"}, 200
+
     
 
     #cors origin
