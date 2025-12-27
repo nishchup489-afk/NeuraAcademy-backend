@@ -23,7 +23,11 @@ export default function ExploreCourses() {
   const fetchCourses = async () => {
     try {
       const res = await api.get("/student/courses/available");
-      setCourses(res.data.courses || []);
+      console.log("Courses response:", res.data);
+      
+      // Handle both formats: {courses: [...]} and direct array
+      const courseList = Array.isArray(res.data) ? res.data : (res.data.courses || []);
+      setCourses(courseList);
     } catch (error) {
       console.error("Error fetching courses:", error);
     } finally {

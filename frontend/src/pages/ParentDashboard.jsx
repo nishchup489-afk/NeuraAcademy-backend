@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import Chatbot from "../components/Chatbot";
 
 export default function ParentDashboard() {
 
@@ -13,7 +14,7 @@ export default function ParentDashboard() {
           <Link to="/parent/dashboard">Dashboard</Link>
           <Link to="/parent/child">Child Profile</Link>
           <Link to="/parent/progress">Progress</Link>
-          <Link to="/parent/profile">Profile</Link>
+          <Link to="/parent/profile/view">Profile</Link>
           <Link to="/auth/logout">Logout</Link>
         </nav>
       </header>
@@ -66,6 +67,7 @@ export default function ParentDashboard() {
       <footer style={styles.footer}>
         © {new Date().getFullYear()} NeuraAcademy
       </footer>
+      <Chatbot floating />
     </>
   );
 }

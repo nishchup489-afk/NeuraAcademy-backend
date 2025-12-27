@@ -58,6 +58,7 @@ def get_course_analytics(course_id):
     return jsonify({
         "course_id": str(course.id),
         "course_title": course.title,
+        "thumbnail_url": course.thumbnail_url,
         "total_enrollments": total_enrollments,
         "completed_enrollments": len([e for e in enrollments if e.completed]),
         "average_rating": round(average_rating, 2),
@@ -96,6 +97,7 @@ def get_teacher_dashboard():
         course_summaries.append({
             "id": str(course.id),
             "title": course.title,
+            "thumbnail_url": course.thumbnail_url,
             "status": course.status,
             "enrollments": enrollments,
             "average_rating": round(avg_rating, 2),

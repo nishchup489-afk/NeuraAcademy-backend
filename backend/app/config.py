@@ -1,29 +1,27 @@
-import os 
+import os
 from dotenv import load_dotenv
 from datetime import timedelta
+
 load_dotenv()
 
-class BaseConfig: 
-
-    # BASE
+class BaseConfig:
     DEBUG = False
     TESTING = False
-    ENV = os.getenv("FLASK_ENV", "development")
 
-
-
-    #DATABASE
+    # Database
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    SQLALCHEMY_TRACK_MODIFICATIONS  = False
+    # Secrets & salts
+    SECRET_KEY = os.getenv("SECRET_KEY")
+    SECURITY_PASSWORD_SALT = os.getenv("SECURITY_PASSWORD_SALT")
+    PASSWORD_RESET_SALT = os.getenv("PASSWORD_RESET_SALT")
+    EMAIL_TOKEN_SALT = os.getenv("EMAIL_TOKEN_SALT")
 
+    # Frontend
+    FRONTEND_URL = os.getenv("FRONTEND_URL")
 
-    #ALL SALT AND SECRET
-    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
-    SECURITY_PASSWORD_SALT = os.getenv("SECURITY_PASSWORD_SALT", "dev-security-salt")
-    PASSWORD_RESET_SALT = os.getenv("PASSWORD_RESET_SALT", "dev-reset-salt")
-
-    #MAIL THINGS
+    # Flask-Mail (DEV fallback)
     MAIL_SERVER = os.getenv("MAIL_SERVER")
     MAIL_PORT = int(os.getenv("MAIL_PORT", 587))
     MAIL_USERNAME = os.getenv("MAIL_USERNAME")
@@ -31,42 +29,30 @@ class BaseConfig:
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False
 
-    #MAIL SALT
-    EMAIL_TOKEN_SALT = os.getenv("EMAIL_TOKEN_SALT" , "dev-email-salt")
+    # SendGrid (PRIMARY)
+    SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+    SENDGRID_FROM_EMAIL = os.getenv("SENDGRID_FROM_EMAIL")
 
-    #CAPTCHA 
-    RECAPTCHA_PUBLIC_KEY = os.getenv("RECAPTCHA_PUBLIC_KEY")
-    RECAPTCHA_PRIVATE_KEY = os.getenv("RECAPTCHA_PRIVATE_KEY")
-
-    #SESSION
+    # Session
     SESSION_COOKIE_NAME = "neuraacademy_session"
     SESSION_COOKIE_HTTPONLY = True
-    # For local development with frontend on a different port, allow cross-site cookies.
-    # Modern browsers require SameSite=None and Secure for cross-site cookies; localhost is treated as secure by most browsers.
     SESSION_COOKIE_SAMESITE = None
     SESSION_COOKIE_SECURE = False
-    # Do not force cookie domain; leave as host-only to avoid cross-port issues
     SESSION_COOKIE_DOMAIN = None
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
 
-    #CORS
-    CORS_SUPPORTS_CREDENTIALS  = True
-
-    #Oauth
+    # OAuth
     OAUTHLIB_INSECURE_TRANSPORT = True
-
-
-
 
 
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
-    FRONTEND_URL = "http://localhost:5173"
 
 
 class ProductionConfig(BaseConfig):
     SESSION_COOKIE_SECURE = True
     OAUTHLIB_INSECURE_TRANSPORT = False
+
 
 class TestingConfig(BaseConfig):
     TESTING = True

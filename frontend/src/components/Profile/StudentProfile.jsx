@@ -1,151 +1,311 @@
 import { useState } from "react"
 import api from "../../api/axios";
 import { useNavigate } from "react-router-dom";
+import { Upload, Github, Facebook, Linkedin, Instagram, Twitter, Phone, MapPin, User, FileText } from "lucide-react";
+import "./ProfileForm.css";
 
-export default function StudentProfile(){
+export default function StudentProfile() {
   const navigate = useNavigate()
-    const [form , setForm] = useState({
-        avatar: null,
-        first_name: "",
-        last_name: "",
-        date_of_birth: "",
-        country_code: "+1",
-        country: "" ,
-        phone: "",
-        bio: "",
-        github: "",
-        facebook: "",
-        x: "",
-        linkedin: "",
-        instagram: "",
-        
-    })
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [preview, setPreview] = useState(null);
 
-    const countryCodes = ["+1", "+44", "+91", "+61", "+81" , "+880"];
+  const [form, setForm] = useState({
+    avatar: null,
+    first_name: "",
+    last_name: "",
+    date_of_birth: "",
+    country_code: "+1",
+    country: "",
+    phone: "",
+    bio: "",
+    github: "",
+    facebook: "",
+    x: "",
+    linkedin: "",
+    instagram: "",
+  })
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+  const countryCodes = ["+1", "+44", "+91", "+61", "+81", "+880"];
 
-        const formData = new FormData()
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
-        for (let key in form){
-            if (form[key]) formData.append(key , form[key])
-        }
+    const formData = new FormData()
 
-        try{
-            const res = await api.post("/student/profile" , formData , {
-                headers : {"Content-Type" : "multipart/form-data"},
-                withCredentials : true
-            })
-            console.log("profile updated" , res.data)
-            const role = res.data.role
-            if (role === "student") 
-                {
-                    navigate("/student/dashboard"); 
-                
-                }else {
-                
-                    console.log("No role found in response"); 
-                }
-        }catch(err){
-            console.error(err.response?.data || err.message)
-            console.log("failed uploading profile")
-        }
+    for (let key in form) {
+      if (form[key]) formData.append(key, form[key])
     }
 
-    const  handleChange = (e) =>{
-        const {name , value , files} = e.target ; 
-        if (name === "avatar"){
-            setForm({...form , [name]:files[0]})
-        } else{
-            setForm({...form , [name]:value})
-        }
-
+    try {
+      const res = await api.post("/student/profile", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true
+      })
+      console.log("profile updated", res.data)
+      navigate("/student/dashboard");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to save profile");
+      console.error(err.response?.data || err.message)
+    } finally {
+      setLoading(false);
     }
+  }
 
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    if (name === "avatar") {
+      const file = files[0];
+      setForm({ ...form, [name]: file });
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    } else {
+      setForm({ ...form, [name]: value })
+    }
+  }
 
+  return (
+    <div className="profile-container">
+      <div className="profile-wrapper">
+        <div className="profile-header">
+          <h1 className="profile-title">Complete Your Profile</h1>
+          <p className="profile-subtitle">Help us get to know you better</p>
+        </div>
 
-    return(
-       <>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="avatar">Upload your profile picture</label>
-        <input type="file" name="avatar" id="avatar" onChange={handleChange} /><br />
+        {error && <div className="error-message">{error}</div>}
 
-        <input
-          type="text"
-          name="first_name"
-          id="first_name"
-          placeholder="Enter your first name"
-          value={form.first_name}
-          onChange={handleChange}
-        /><br />
+        <form onSubmit={handleSubmit} className="profile-form">
+          {/* Avatar Section */}
+          <div className="form-section">
+            <h2 className="section-title">Profile Picture</h2>
+            <div className="avatar-upload">
+              <div className="avatar-preview">
+                {preview ? (
+                  <img src={preview} alt="Preview" />
+                ) : (
+                  <>
+                    <Upload size={32} />
+                    <p>Click to upload</p>
+                  </>
+                )}
+                <input
+                  type="file"
+                  name="avatar"
+                  id="avatar"
+                  onChange={handleChange}
+                  accept="image/*"
+                  className="file-input"
+                />
+              </div>
+              <p className="helper-text">PNG, JPG up to 10MB</p>
+            </div>
+          </div>
 
-        <input
-          type="text"
-          name="last_name"
-          id="last_name"
-          placeholder="Enter your last name"
-          value={form.last_name}
-          onChange={handleChange}
-        /><br />
+          {/* Basic Information */}
+          <div className="form-section">
+            <h2 className="section-title">
+              <User size={20} /> Basic Information
+            </h2>
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">First Name *</label>
+                <input
+                  type="text"
+                  name="first_name"
+                  placeholder="John"
+                  value={form.first_name}
+                  onChange={handleChange}
+                  className="form-input"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Last Name *</label>
+                <input
+                  type="text"
+                  name="last_name"
+                  placeholder="Doe"
+                  value={form.last_name}
+                  onChange={handleChange}
+                  className="form-input"
+                  required
+                />
+              </div>
+            </div>
 
-        <input
-          type="date"
-          name="date_of_birth"
-          id="date_of_birth"
-          value={form.date_of_birth}
-          onChange={handleChange}
-        /><br />
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Date of Birth</label>
+                <input
+                  type="date"
+                  name="date_of_birth"
+                  value={form.date_of_birth}
+                  onChange={handleChange}
+                  className="form-input"
+                />
+              </div>
+            </div>
+          </div>
 
-        <input
-          type="country"
-          name="country"
-          id="country"
-          value={form.country}
-          onChange={handleChange}
-        /><br />
+          {/* Location */}
+          <div className="form-section">
+            <h2 className="section-title">
+              <MapPin size={20} /> Location
+            </h2>
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Country</label>
+                <input
+                  type="text"
+                  name="country"
+                  placeholder="e.g., United States"
+                  value={form.country}
+                  onChange={handleChange}
+                  className="form-input"
+                />
+              </div>
+            </div>
 
-        {/* COUNTRY CODE DROPDOWN */}
-        <label htmlFor="country_code">Country Code</label>
-        <select
-          name="country_code"
-          id="country_code"
-          value={form.country_code}
-          onChange={handleChange}
-        >
-          {countryCodes.map((code) => (
-            <option key={code} value={code}>
-              {code}
-            </option>
-          ))}
-        </select><br />
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Country Code</label>
+                <select
+                  name="country_code"
+                  value={form.country_code}
+                  onChange={handleChange}
+                  className="form-input"
+                >
+                  {countryCodes.map((code) => (
+                    <option key={code} value={code}>
+                      {code}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">
+                  <Phone size={18} /> Phone Number
+                </label>
+                <input
+                  type="tel"
+                  name="phone"
+                  placeholder="Enter your phone number"
+                  value={form.phone}
+                  onChange={handleChange}
+                  className="form-input"
+                />
+              </div>
+            </div>
+          </div>
 
-        <input
-          type="tel"
-          name="phone"
-          id="phone"
-          placeholder="Enter your phone number"
-          value={form.phone}
-          onChange={handleChange}
-        /><br />
+          {/* About */}
+          <div className="form-section">
+            <h2 className="section-title">
+              <FileText size={20} /> About You
+            </h2>
+            <div className="form-group">
+              <label className="form-label">Bio</label>
+              <textarea
+                name="bio"
+                placeholder="Tell us about yourself..."
+                value={form.bio}
+                onChange={handleChange}
+                className="form-textarea"
+                rows="4"
+              ></textarea>
+            </div>
+          </div>
 
-        <input
-          type="text"
-          name="bio"
-          id="bio"
-          placeholder="Type your bio"
-          value={form.bio}
-          onChange={handleChange}
-        /><br />
+          {/* Social Links */}
+          <div className="form-section">
+            <h2 className="section-title">Social Links</h2>
+            <p className="section-desc">Add your social profiles (optional)</p>
 
-        <input type="url" name="github" placeholder="Add your github" onChange={handleChange} /><br />
-        <input type="url" name="facebook" placeholder="Add your facebook" onChange={handleChange} /><br />
-        <input type="url" name="x" placeholder="Add your x" onChange={handleChange} /><br />
-        <input type="url" name="linkedin" placeholder="Add your linkedin" onChange={handleChange} /><br />
-        <input type="url" name="instagram" placeholder="Add your instagram" onChange={handleChange} /><br />
+            <div className="social-links">
+              <div className="form-group">
+                <label className="form-label">
+                  <Github size={18} /> GitHub
+                </label>
+                <input
+                  type="url"
+                  name="github"
+                  placeholder="https://github.com/username"
+                  value={form.github}
+                  onChange={handleChange}
+                  className="form-input"
+                />
+              </div>
 
-        <button type="submit">Save Profile</button>
-      </form>
-    </>
-    )
+              <div className="form-group">
+                <label className="form-label">
+                  <Linkedin size={18} /> LinkedIn
+                </label>
+                <input
+                  type="url"
+                  name="linkedin"
+                  placeholder="https://linkedin.com/in/username"
+                  value={form.linkedin}
+                  onChange={handleChange}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">
+                  <Twitter size={18} /> X (Twitter)
+                </label>
+                <input
+                  type="url"
+                  name="x"
+                  placeholder="https://x.com/username"
+                  value={form.x}
+                  onChange={handleChange}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">
+                  <Facebook size={18} /> Facebook
+                </label>
+                <input
+                  type="url"
+                  name="facebook"
+                  placeholder="https://facebook.com/username"
+                  value={form.facebook}
+                  onChange={handleChange}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">
+                  <Instagram size={18} /> Instagram
+                </label>
+                <input
+                  type="url"
+                  name="instagram"
+                  placeholder="https://instagram.com/username"
+                  value={form.instagram}
+                  onChange={handleChange}
+                  className="form-input"
+                />
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" className="submit-button" disabled={loading}>
+            {loading ? "Saving..." : "Continue to Dashboard"}
+          </button>
+        </form>
+      </div>
+    </div>
+  )
 }

@@ -112,3 +112,18 @@ def delete_chapter(course_id, chapter_id):
     db.session.commit()
 
     return jsonify({"message": "Chapter deleted successfully"}), 200
+
+
+@chapter_bp.route("/<uuid:chapter_id>/publish", methods=["POST"])
+@login_required
+@roles_required("teacher")
+def publish_chapter(course_id, chapter_id):
+    chapter = Chapter.query.filter_by(
+        id=chapter_id,
+        course_id=course_id
+    ).first_or_404()
+
+    chapter.status = "published"
+    db.session.commit()
+
+    return jsonify({"message": "Chapter published successfully", "chapter_id": str(chapter.id)}), 200

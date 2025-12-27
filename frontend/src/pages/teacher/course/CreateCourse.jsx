@@ -61,6 +61,8 @@ export default function CreateCourse() {
             <p className="text-sm text-gray-500 mt-2">Make it clear and descriptive</p>
           </div>
 
+          {/* Thumbnail will be uploaded via Course dashboard (after creation) */}
+
           {/* Description Field */}
           <div>
             <label className="block text-lg font-semibold text-gray-900 mb-3">

@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
-import { BookOpen, Award, TrendingUp, Users, LogOut } from "lucide-react";
+import { BookOpen, Award, TrendingUp, Users, LogOut, X , Globe} from "lucide-react";
+import Chatbot from "../../components/Chatbot";
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [wikiOpen, setWikiOpen] = useState(false);
 
   useEffect(() => {
     fetchDashboard();
@@ -60,14 +62,14 @@ export default function StudentDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 relative">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-indigo-600">NeuraAcademy</h1>
           <div className="flex items-center gap-4">
             <button
-              onClick={() => navigate("/student/profile")}
+              onClick={() => navigate("/student/profile/view")}
               className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
             >
               Profile
@@ -144,20 +146,31 @@ export default function StudentDashboard() {
                   {dashboard.courses.map((course) => (
                     <div
                       key={course.id}
+                      onClick={() => navigate(`/student/course/${course.id}`)}
                       className="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 hover:shadow-md transition cursor-pointer"
-                      onClick={() => navigate(`/student/learn/${course.id}`)}
                     >
                       <div className="flex items-start justify-between mb-3">
-                        <h4 className="font-semibold text-gray-900">{course.title}</h4>
+                        <div className="flex items-center gap-4">
+                          <img src={course.thumbnail_url || '/images/course_.jpg'} alt={course.title} className="w-16 h-12 object-cover rounded" />
+                          <h4 className="font-semibold text-gray-900">{course.title}</h4>
+                        </div>
                         <span className="text-sm text-indigo-600 font-medium">{course.progress}%</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                      <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden mb-2">
                         <div
                           className="bg-gradient-to-r from-indigo-500 to-purple-500 h-full transition-all duration-300"
                           style={{ width: `${course.progress}%` }}
                         ></div>
                       </div>
-                      <p className="text-sm text-gray-500 mt-2">{course.chapters} chapters</p>
+                      <p className="text-sm text-gray-500 mb-2">{course.chapters} chapters</p>
+
+                      {/* Attend Exam Button */}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); navigate(`/student/course/${course.id}/exams`); }}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium"
+                      >
+                        Attend Exam
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -225,6 +238,34 @@ export default function StudentDashboard() {
           </div>
         )}
       </main>
+
+      {/* Floating Wikipedia-like Groq Bot */}
+      {!wikiOpen && (
+        <button
+          onClick={() => setWikiOpen(true)}
+          className="fixed bottom-8 left-8 bg-indigo-600 text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition z-50"
+        >
+          <Globe size={24} />
+        </button>
+      )}
+
+      {wikiOpen && (
+        <div className="fixed bottom-8 right-8 w-96 h-[500px] bg-white border rounded-lg shadow-xl z-50 flex flex-col overflow-hidden">
+          <div className="flex justify-between items-center bg-indigo-600 text-white p-3">
+            <span>Wikipedia</span>
+            <button onClick={() => setWikiOpen(false)}>
+              <X size={20} />
+            </button>
+          </div>
+          <iframe
+            src="https://en.wikipedia.org/wiki/Special:Random"
+            className="flex-1 w-full"
+            title="Groq Bot Wiki"
+          />
+        </div>
+      )}
+
+      <Chatbot floating />
     </div>
   );
 }

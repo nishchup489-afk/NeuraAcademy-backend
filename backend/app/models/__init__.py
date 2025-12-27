@@ -3,7 +3,7 @@ from .student import StudentProfile
 from .teacher import TeacherProfile
 from .parent import ParentProfile, ParentStudentLink
 from .admin import AdminAccess
-from .course import Course, CourseEnrollment, Lesson, Chapter, LessonComment, CourseRating, Exam, ExamQuestion, ExamAttempt
+from .course import Course, CourseEnrollment, Lesson, Chapter, LessonComment, CourseRating, Exam, ExamQuestion, ExamAttempt, LessonCompletion
 from .id_sequence import IDSequence
 
 # Expose model classes for convenient imports
@@ -19,6 +19,7 @@ __all__ = [
     "Lesson",
     "Chapter",
     "LessonComment",
+    "LessonCompletion",
     "CourseRating",
     "Exam",
     "ExamQuestion",

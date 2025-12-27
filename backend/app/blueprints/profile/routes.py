@@ -30,21 +30,6 @@ def handle_profile_update( * ,
         return jsonify({"error": "Unauthorized role"}), 403
 
     
-    avatar_url = None
-    try: 
-        data = schema.load(request.form)
-    except ValidationError as e:
-        return jsonify(e.messages) , 400
-    
-    
-    avatar_file = request.files.get("avatar")
-    avatar_url = None
-
-    if avatar_file:
-        avatar_url = upload_profile(
-            file = avatar_file , 
-            public_id= f"user_{current_user.id}_avatar"
-        )
     role_to_profile_attr = {
         "student": "student_profile",
         "teacher": "teacher_profile",
@@ -54,18 +39,49 @@ def handle_profile_update( * ,
     profile_attr = role_to_profile_attr.get(current_user.role)
     profile = getattr(current_user, profile_attr)
 
+    if request.method == "GET":
+        if not profile:
+            return jsonify({"message": "No profile found"}), 404
+        return jsonify(schema.dump(profile)), 200
 
-    if not profile: 
+    avatar_url = None
+    try: 
+        data = schema.load(request.form)
+    except ValidationError as e:
+        return jsonify(e.messages) , 400
+
+    avatar_file = request.files.get("avatar")
+
+    if avatar_file:
+        avatar_url = upload_profile(
+            file = avatar_file , 
+            public_id= f"user_{current_user.id}_avatar"
+        )
+    if not profile:
         profile = model_class(user_id = current_user.id)
 
     for key , value in data.items():
         setattr(profile , key , value)
     
     if avatar_url:
-        profile.avatar = avatar_url
+        if hasattr(profile, 'avatar_url'):
+            try:
+                profile.avatar_url = avatar_url
+            except Exception:
+                setattr(profile, 'avatar', avatar_url)
+        else:
+            setattr(profile, 'avatar', avatar_url)
     
     if extra_fields_handlar:
         extra_fields_handlar(profile , data)
+
+    if request.method == "GET":
+        if not profile:
+            return jsonify({"message": "No profile found"}), 404
+        data = schema.dump(profile)
+        print("DEBUG profile GET:", data)
+        return jsonify(data), 200
+
     
 
 
@@ -151,5 +167,87 @@ def parent_profile():
         "message": "Parent profile updated successfully",
         "profile": parent_schema.dump(profile)
     })
+
+
+# ---------------- Parent links & student approval endpoints ----------------
+@profile_bp.route("/parent/links", methods=["GET"])
+@login_required
+def parent_links():
+    if current_user.role != "parent":
+        return jsonify({"error": "Parents only"}), 403
+
+    profile = getattr(current_user, "parent_profile", None)
+    if not profile:
+        return jsonify({"links": []}), 200
+
+    links = []
+    for link in profile.student_links:
+        student = link.student
+        links.append({
+            "id": str(link.id),
+            "student_id": str(link.student_id),
+            "student_name": f"{student.first_name} {student.last_name}" if student else None,
+            "status": link.status,
+            "requested_at": link.requested_at.isoformat() if link.requested_at else None,
+            "approved_at": link.approved_at.isoformat() if link.approved_at else None
+        })
+
+    return jsonify({"links": links}), 200
+
+
+@profile_bp.route("/student/parent_requests", methods=["GET"])
+@login_required
+def student_parent_requests():
+    if current_user.role != "student":
+        return jsonify({"error": "Students only"}), 403
+
+    student = getattr(current_user, "student_profile", None)
+    if not student:
+        return jsonify({"requests": []}), 200
+
+    requests = []
+    for link in student.parent_links:
+        if link.status == "pending":
+            parent = link.parent
+            requests.append({
+                "id": str(link.id),
+                "parent_id": str(link.parent_id),
+                "parent_name": f"{parent.user.first_name} {parent.user.last_name}" if parent and parent.user else None,
+                "parent_code": parent.parent_code if parent else None,
+                "requested_at": link.requested_at.isoformat() if link.requested_at else None
+            })
+
+    return jsonify({"requests": requests}), 200
+
+
+@profile_bp.route("/student/parent_requests/<uuid:link_id>/respond", methods=["POST"])
+@login_required
+def respond_parent_request(link_id):
+    if current_user.role != "student":
+        return jsonify({"error": "Students only"}), 403
+
+    student = getattr(current_user, "student_profile", None)
+    if not student:
+        return jsonify({"error": "Student profile not found"}), 404
+
+    link = db.session.query(ParentStudentLink).filter_by(id=link_id).first()
+    if not link or str(link.student_id) != str(student.id):
+        return jsonify({"error": "Request not found"}), 404
+
+    data = request.get_json() or {}
+    action = data.get("action")
+    if action not in ("approve", "reject"):
+        return jsonify({"error": "Invalid action"}), 400
+
+    if action == "approve":
+        link.status = "approved"
+        link.approved_at = db.func.now()
+    else:
+        link.status = "rejected"
+
+    db.session.add(link)
+    db.session.commit()
+
+    return jsonify({"message": f"Request {action}d"}), 200
 
 

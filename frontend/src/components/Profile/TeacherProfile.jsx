@@ -2,215 +2,240 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 
-export default function TeacherProfile(){
+export default function TeacherProfile() {
+  const navigate = useNavigate();
 
-    const navigate = useNavigate()
-    const [baseform , setBaseform] = useState({
-        avatar: null,
-        first_name: "",
-        last_name: "",
-        date_of_birth: "",
-        country_code: "+1",
-        country: "" ,
-        phone: "",
-        bio: "",
-        github: "",
-        facebook: "",
-        x: "",
-        linkedin: "",
-        instagram: "",
-        
-    })
-    const [form , setForm ] = useState({
-            platform_name : "" , 
-            education_info : "" ,
-            years_experience : 0 , 
+  const [form, setForm] = useState({
+    avatar: null,
+    first_name: "",
+    last_name: "",
+    date_of_birth: "",
+    country_code: "+1",
+    country: "",
+    phone: "",
+    bio: "",
+    github: "",
+    facebook: "",
+    x: "",
+    linkedin: "",
+    instagram: "",
+    platform_name: "",
+    education_info: "",
+    years_experience: 0,
+  });
 
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const countryCodes = ["+1", "+44", "+91", "+61", "+81", "+880"];
 
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    if (name === "avatar" && files && files[0]) {
+      setForm((prev) => ({ ...prev, avatar: files[0] }));
+      setAvatarPreview(URL.createObjectURL(files[0]));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
     }
+  };
 
-    
-
-    )
-
-    const countryCodes = ["+1", "+44", "+91", "+61", "+81" , "+880"];
-
-    const teacherhandleChange = (e) => {
-    const { name, value } = e.target;
-    setForm(prev => ({
-        ...prev,
-        [name]: value
-    }));
-    };
-
-    const handleChange = (e) => {
-        const {name , value , files} = e.target;
-        if (name === "avatar") {
-            setBaseform(prev => ({ ...prev, avatar: files[0] }))
-        }else{
-            setBaseform(prev => ({ ...prev, [name]: value }))
-        }
-
-    }
-
-
-   const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    try {
+      const formData = new FormData();
+      Object.entries(form).forEach(([key, value]) => {
+        if (value !== "" && value !== null) formData.append(key, value);
+      });
 
-   
-    try{
-         const baseformData = new FormData();
-         Object.entries(baseform).forEach(([key , value]) => {
-            if (value !== "" && value !== null){
-                baseformData.append(key , value)
-            }
-         })
+      await api.post("/teacher/profile", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true,
+      });
 
-         await api.post("/student/profile" , baseformData , {
-            headers: { "Content-Type": "multipart/form-data" } ,
-            withCredentials: true
-         })
-
-         const teacherFormData = new FormData();
-         Object.entries(form).forEach(([key , value]) => {
-            teacherFormData.append(key , value)
-         })
-
-         await api.post("/teacher/profile" , teacherFormData , {
-            headers : { "Content-Type" : "multipart/form-data"} ,
-            withCredentials : true
-         })
-
-         navigate("/teacher/dashboard")
-
-    }catch(err){
-        console.error(err.response?.data || err.message)
+      navigate("/teacher/dashboard");
+    } catch (err) {
+      console.error(err.response?.data || err.message);
     }
+  };
 
-   }
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white rounded-xl shadow-md p-6 w-full max-w-2xl space-y-6"
+      >
+        <h2 className="text-2xl font-bold text-gray-800">Basic Info</h2>
 
+        {/* Avatar Upload */}
+        <div className="flex flex-col items-center gap-2">
+          <label htmlFor="avatar" className="font-semibold text-gray-700">
+            Profile Picture
+          </label>
+          <div className="w-40 h-40 border rounded-full overflow-hidden flex items-center justify-center bg-gray-100">
+            {avatarPreview ? (
+              <img
+                src={avatarPreview}
+                alt="Avatar Preview"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-gray-400">No image selected</span>
+            )}
+          </div>
+          <input
+            type="file"
+            name="avatar"
+            id="avatar"
+            onChange={handleChange}
+            className="mt-2"
+          />
+        </div>
 
+        {/* Name, DOB, Country */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input
+            type="text"
+            name="first_name"
+            placeholder="First Name"
+            value={form.first_name}
+            onChange={handleChange}
+            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"
+          />
+          <input
+            type="text"
+            name="last_name"
+            placeholder="Last Name"
+            value={form.last_name}
+            onChange={handleChange}
+            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"
+          />
+        </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <input
+            type="date"
+            name="date_of_birth"
+            value={form.date_of_birth}
+            onChange={handleChange}
+            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"
+          />
+          <input
+            type="text"
+            name="country"
+            placeholder="Country"
+            value={form.country}
+            onChange={handleChange}
+            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"
+          />
+          <select
+            name="country_code"
+            value={form.country_code}
+            onChange={handleChange}
+            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"
+          >
+            {countryCodes.map((code) => (
+              <option key={code} value={code}>
+                {code}
+              </option>
+            ))}
+          </select>
+        </div>
 
-    return (
-        <>
+        <input
+          type="tel"
+          name="phone"
+          placeholder="Phone"
+          value={form.phone}
+          onChange={handleChange}
+          className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"
+        />
+        <input
+          type="text"
+          name="bio"
+          placeholder="Bio"
+          value={form.bio}
+          onChange={handleChange}
+          className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"
+        />
 
-            <form onSubmit={handleSubmit}>
-                <h3>Basic info</h3><br />
-                 <label htmlFor="avatar">Upload your profile picture</label>
-                <input type="file" name="avatar" id="avatar" onChange={handleChange} /><br />
+        {/* Social Links */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input
+            type="url"
+            name="github"
+            placeholder="Github URL"
+            value={form.github}
+            onChange={handleChange}
+            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"
+          />
+          <input
+            type="url"
+            name="facebook"
+            placeholder="Facebook URL"
+            value={form.facebook}
+            onChange={handleChange}
+            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"
+          />
+          <input
+            type="url"
+            name="x"
+            placeholder="X URL"
+            value={form.x}
+            onChange={handleChange}
+            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"
+          />
+          <input
+            type="url"
+            name="linkedin"
+            placeholder="LinkedIn URL"
+            value={form.linkedin}
+            onChange={handleChange}
+            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"
+          />
+          <input
+            type="url"
+            name="instagram"
+            placeholder="Instagram URL"
+            value={form.instagram}
+            onChange={handleChange}
+            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"
+          />
+        </div>
 
-                <input
-                type="text"
-                name="first_name"
-                id="first_name"
-                placeholder="Enter your first name"
-                value={baseform.first_name}
-                onChange={handleChange}
-                /><br />
+        {/* Teacher-Specific Info */}
+        <h2 className="text-2xl font-bold text-gray-800 mt-6">Teacher Info</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input
+            type="text"
+            name="platform_name"
+            placeholder="Platform Name"
+            value={form.platform_name}
+            onChange={handleChange}
+            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"
+          />
+          <input
+            type="text"
+            name="education_info"
+            placeholder="Education Info"
+            value={form.education_info}
+            onChange={handleChange}
+            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"
+          />
+          <input
+            type="number"
+            name="years_experience"
+            placeholder="Years of Experience"
+            value={form.years_experience}
+            onChange={handleChange}
+            className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full"
+          />
+        </div>
 
-                <input
-                type="text"
-                name="last_name"
-                id="last_name"
-                placeholder="Enter your last name"
-                value={baseform.last_name}
-                onChange={handleChange}
-                /><br />
-
-                <input
-                type="date"
-                name="date_of_birth"
-                id="date_of_birth"
-                value={baseform.date_of_birth}
-                onChange={handleChange}
-                /><br />
-
-                <input
-                type="country"
-                name="country"
-                id="country"
-                value={baseform.country}
-                onChange={handleChange}
-                /><br />
-
-                {/* COUNTRY CODE DROPDOWN */}
-                <label htmlFor="country_code">Country Code</label>
-                <select
-                name="country_code"
-                id="country_code"
-                value={baseform.country_code}
-                onChange={handleChange}
-                >
-                {countryCodes.map((code) => (
-                    <option key={code} value={code}>
-                    {code}
-                    </option>
-                ))}
-                </select><br />
-
-                <input
-                type="tel"
-                name="phone"
-                id="phone"
-                placeholder="Enter your phone number"
-                value={baseform.phone}
-                onChange={handleChange}
-                /><br />
-
-                <input
-                type="text"
-                name="bio"
-                id="bio"
-                placeholder="Type your bio"
-                value={baseform.bio}
-                onChange={handleChange}
-                /><br />
-
-                <input type="url" name="github" placeholder="Add your github" onChange={handleChange} /><br />
-                <input type="url" name="facebook" placeholder="Add your facebook" onChange={handleChange} /><br />
-                <input type="url" name="x" placeholder="Add your x" onChange={handleChange} /><br />
-                <input type="url" name="linkedin" placeholder="Add your linkedin" onChange={handleChange} /><br />
-                <input type="url" name="instagram" placeholder="Add your instagram" onChange={handleChange} /><br />
-
-
-                
-                <h3>Teacher info</h3>
-                        <input
-                        type="text"
-                        name="platform_name"
-                        id="platform_name"
-                        placeholder="Enter your platform name"
-                        value={form.platform_name}
-                        onChange={teacherhandleChange}
-                        /><br />
- 
-                        <input
-                        type="text"
-                        name="education_info"
-                        id="education_info"
-                        placeholder="Enter your education_info"
-                        value={form.education_info}
-                        onChange={teacherhandleChange}
-                        /><br />
-
-                        <input
-                            type="number"
-                            name="years_experience"
-                            id="years_experience"
-                            placeholder="How many years of experience do you have"
-                            value={form.years_experience}
-                            onChange={teacherhandleChange}
-                        /><br />
-
-                        <button type="submit">Submit profile</button>
-                        
-
-            </form>
-
-        </>
-    )
-
-
-
+        <button
+          type="submit"
+          className="w-full bg-indigo-600 text-white font-semibold py-2 rounded-lg hover:bg-indigo-700 transition"
+        >
+          Submit Profile
+        </button>
+      </form>
+    </div>
+  );
 }

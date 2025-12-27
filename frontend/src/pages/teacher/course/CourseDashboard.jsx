@@ -12,6 +12,10 @@ export default function TeacherCourseDashboard() {
   const [exams, setExams] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [newLessonTitles, setNewLessonTitles] = useState({});
+  const [selectedThumbnail, setSelectedThumbnail] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchCourseData();
@@ -41,6 +45,39 @@ export default function TeacherCourseDashboard() {
       console.error("Error fetching course data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleThumbnailFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSelectedThumbnail(file);
+    try {
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    } catch (err) {
+      setPreviewUrl(null);
+    }
+  };
+
+  const uploadSelectedThumbnail = async () => {
+    if (!selectedThumbnail) return alert('Select an image first');
+    const fd = new FormData();
+    fd.append('file', selectedThumbnail);
+    setUploading(true);
+    try {
+      const res = await courseAPI.uploadCourseThumbnail(courseID, fd);
+      const url = res.data.thumbnail_url;
+      setAnalytics({ ...(analytics || {}), thumbnail_url: url });
+      setSelectedThumbnail(null);
+      setPreviewUrl(null);
+      alert('Thumbnail uploaded');
+      fetchCourseData();
+    } catch (err) {
+      console.error(err);
+      alert('Thumbnail upload failed');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -84,10 +121,10 @@ export default function TeacherCourseDashboard() {
                     : "border-transparent text-gray-600 hover:text-gray-900"
                 }`}
               >
-                {tab === "overview" && "📊 Overview"}
-                {tab === "chapters" && "📚 Chapters & Lessons"}
-                {tab === "exams" && "📝 Exams"}
-                {tab === "analytics" && "📈 Analytics"}
+                {tab === "overview" && " Overview"}
+                {tab === "chapters" && " Chapters & Lessons"}
+                {tab === "exams" && " Exams"}
+                {tab === "analytics" && " Analytics"}
               </button>
             ))}
           </div>
@@ -99,82 +136,86 @@ export default function TeacherCourseDashboard() {
         {/* Overview Tab */}
         {activeTab === "overview" && (
           <div>
-            {analytics && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <div className="text-gray-600 text-sm">Students Enrolled</div>
-                  <div className="text-3xl font-bold text-blue-600">
-                    {analytics.total_enrollments}
+            {analytics ? (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                  <div className="bg-white p-6 rounded-lg shadow">
+                    <div className="text-gray-600 text-sm">Students Enrolled</div>
+                    <div className="text-3xl font-bold text-blue-600">{analytics.total_enrollments}</div>
+                  </div>
+                  <div className="bg-white p-6 rounded-lg shadow">
+                    <div className="text-gray-600 text-sm">Completed</div>
+                    <div className="text-3xl font-bold text-green-600">{analytics.completed_enrollments}</div>
+                  </div>
+                  <div className="bg-white p-6 rounded-lg shadow">
+                    <div className="text-gray-600 text-sm">Avg Rating</div>
+                    <div className="text-3xl font-bold text-yellow-600">{analytics.average_rating}⭐</div>
+                  </div>
+                  <div className="bg-white p-6 rounded-lg shadow">
+                    <div className="text-gray-600 text-sm">Avg Progress</div>
+                    <div className="text-3xl font-bold text-purple-600">{analytics.average_progress}%</div>
                   </div>
                 </div>
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <div className="text-gray-600 text-sm">Completed</div>
-                  <div className="text-3xl font-bold text-green-600">
-                    {analytics.completed_enrollments}
-                  </div>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <div className="text-gray-600 text-sm">Avg Rating</div>
-                  <div className="text-3xl font-bold text-yellow-600">
-                    {analytics.average_rating}⭐
-                  </div>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <div className="text-gray-600 text-sm">Avg Progress</div>
-                  <div className="text-3xl font-bold text-purple-600">
-                    {analytics.average_progress}%
-                  </div>
-                </div>
-              </div>
-            )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Quick Stats */}
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h2 className="text-xl font-semibold mb-4">Course Content</h2>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                    <span className="text-gray-700">📚 Chapters</span>
-                    <span className="font-bold text-lg">{chapters.length}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                    <span className="text-gray-700">📝 Exams</span>
-                    <span className="font-bold text-lg">{exams.length}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                    <span className="text-gray-700">📋 Total Lessons</span>
-                    <span className="font-bold text-lg">
-                      {chapters.reduce((sum) => sum + 5, 0)} {/* Placeholder */}
-                    </span>
+                {/* Thumbnail management */}
+                <div className="bg-white p-6 rounded-lg shadow mt-6">
+                  <h3 className="text-lg font-semibold mb-3">Course Thumbnail</h3>
+                  <div className="flex items-start gap-6">
+                    <div className="w-48 h-32 bg-gray-100 rounded overflow-hidden flex items-center justify-center">
+                      <img src={analytics?.thumbnail_url || '/images/course_.jpg'} alt="Thumbnail" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-700">Selected image</label>
+                      <div className="mt-2 flex items-center gap-4">
+                        <div className="w-40 h-24 bg-gray-50 rounded overflow-hidden border">
+                          {previewUrl ? (
+                            <img src={previewUrl} alt="preview" className="w-full h-full object-cover" />
+                          ) : (
+                            <img src={analytics?.thumbnail_url || '/images/course_.jpg'} alt="current" className="w-full h-full object-cover" />
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-2 flex-1">
+                          <input type="file" accept="image/*" onChange={handleThumbnailFile} className="" />
+                          <div className="flex gap-2">
+                            <button onClick={uploadSelectedThumbnail} disabled={uploading} className="px-4 py-2 bg-indigo-600 text-white rounded">{uploading ? 'Uploading…' : 'Upload'}</button>
+                            <button onClick={() => { setSelectedThumbnail(null); setPreviewUrl(null); }} className="px-4 py-2 bg-gray-100 rounded">Clear</button>
+                          </div>
+                          <p className="text-sm text-gray-500">Choose an image, preview it, then click Upload.</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Quick Actions */}
-              <div className="bg-white p-6 rounded-lg shadow">
-                <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-                <div className="space-y-3">
-                  <button
-                    onClick={() => setActiveTab("chapters")}
-                    className="w-full p-3 text-left bg-blue-50 hover:bg-blue-100 rounded text-blue-700 font-medium transition"
-                  >
-                    → Manage Chapters & Lessons
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("exams")}
-                    className="w-full p-3 text-left bg-purple-50 hover:bg-purple-100 rounded text-purple-700 font-medium transition"
-                  >
-                    → Create/Edit Exams
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("analytics")}
-                    className="w-full p-3 text-left bg-green-50 hover:bg-green-100 rounded text-green-700 font-medium transition"
-                  >
-                    → View Detailed Analytics
-                  </button>
+                <div className="bg-white p-6 rounded-lg shadow mt-6">
+                  <h2 className="text-xl font-semibold mb-4">Course Content</h2>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                      <span className="text-gray-700">📚 Chapters</span>
+                      <span className="font-bold text-lg">{chapters.length}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                      <span className="text-gray-700">📝 Exams</span>
+                      <span className="font-bold text-lg">{exams.length}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                      <span className="text-gray-700">📋 Total Lessons</span>
+                      <span className="font-bold text-lg">{chapters.reduce((sum) => sum + 5, 0)}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+
+                {/* Quick Actions */}
+                <div className="bg-white p-6 rounded-lg shadow mt-6">
+                  <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+                  <div className="space-y-3">
+                    <button onClick={() => setActiveTab("chapters")} className="w-full p-3 text-left bg-blue-50 hover:bg-blue-100 rounded text-blue-700 font-medium transition">→ Manage Chapters & Lessons</button>
+                    <button onClick={() => setActiveTab("exams")} className="w-full p-3 text-left bg-purple-50 hover:bg-purple-100 rounded text-purple-700 font-medium transition">→ Create/Edit Exams</button>
+                    <button onClick={() => setActiveTab("analytics")} className="w-full p-3 text-left bg-green-50 hover:bg-green-100 rounded text-green-700 font-medium transition">→ View Detailed Analytics</button>
+                  </div>
+                </div>
+              </>
+            ) : null}
           </div>
         )}
 
@@ -221,16 +262,48 @@ export default function TeacherCourseDashboard() {
                         {chapter.status}
                       </span>
                     </div>
-                    <button
-                      onClick={() =>
-                        navigate(
-                          `/teacher/course/${courseID}/chapters/${chapter.chapter_id}/lessons`
-                        )
-                      }
-                      className="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium"
-                    >
-                      View Lessons →
-                    </button>
+                    <div className="mt-4 flex items-center gap-3">
+                      <button
+                        onClick={() =>
+                          navigate(
+                            `/teacher/course/${courseID}/chapters/${chapter.chapter_id}/lessons`
+                          )
+                        }
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      >
+                        View Lessons →
+                      </button>
+
+                      <input
+                        type="text"
+                        placeholder="New lesson title"
+                        value={newLessonTitles[chapter.chapter_id] || ""}
+                        onChange={(e) =>
+                          setNewLessonTitles({
+                            ...newLessonTitles,
+                            [chapter.chapter_id]: e.target.value
+                          })
+                        }
+                        className="border border-gray-300 rounded px-3 py-1 text-sm"
+                      />
+                      <button
+                        onClick={async () => {
+                          const title = (newLessonTitles[chapter.chapter_id] || "").trim();
+                          if (!title) return alert("Please enter a lesson title");
+                          try {
+                            await courseAPI.createLesson(chapter.chapter_id, { title, order: 0 });
+                            setNewLessonTitles({ ...newLessonTitles, [chapter.chapter_id]: "" });
+                            alert("Lesson created. Go to Lessons to edit content.");
+                          } catch (err) {
+                            console.error(err);
+                            alert("Failed to create lesson");
+                          }
+                        }}
+                        className="bg-indigo-600 text-white px-3 py-1 rounded text-sm"
+                      >
+                        + Lesson
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

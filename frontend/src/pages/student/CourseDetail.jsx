@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
+import { submitCourseRating, getCourseReviews } from "../../api/course";
 import { Star, Users, BookOpen, Clock, ChevronDown, LogOut } from "lucide-react";
 
 export default function CourseDetail() {
@@ -11,6 +12,10 @@ export default function CourseDetail() {
   const [enrolling, setEnrolling] = useState(false);
   const [enrolled, setEnrolled] = useState(false);
   const [expandedChapter, setExpandedChapter] = useState(0);
+  const [ratingValue, setRatingValue] = useState(0);
+  const [reviewText, setReviewText] = useState("");
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
 
 
   useEffect(() => {
@@ -19,6 +24,8 @@ export default function CourseDetail() {
         const res = await api.get(`/student/courses/${courseId}`);
         setCourse(res.data);
         setEnrolled(res.data.is_enrolled || false);
+        setRatingValue(Math.round(res.data.rating || 0));
+        fetchReviews(res.data.id);
       } catch (error) {
         console.error("Error fetching course:", error);
       } finally {
@@ -27,6 +34,18 @@ export default function CourseDetail() {
     };
     fetchCourseDetail();
   }, [courseId]);
+
+  const fetchReviews = async (id) => {
+    setReviewsLoading(true);
+    try {
+      const res = await getCourseReviews(id);
+      setReviews(res.data || []);
+    } catch (err) {
+      console.error("Error loading reviews:", err);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
 
 
 
@@ -130,11 +149,12 @@ export default function CourseDetail() {
               <div className="flex items-center gap-6 mb-4">
                 <div className="flex items-center gap-1">
                   {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      size={20}
-                      className={i < Math.floor(course.rating || 0) ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
-                    />
+                    <button key={i} onClick={async () => { setRatingValue(i+1); }} className="p-0.5">
+                      <Star
+                        size={20}
+                        className={i < Math.floor(ratingValue || course.rating || 0) ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
+                      />
+                    </button>
                   ))}
                   <span className="ml-2 text-gray-600">({course.review_count} reviews)</span>
                 </div>
@@ -214,6 +234,53 @@ export default function CourseDetail() {
                 ) : (
                   <p className="text-gray-500">Course content coming soon</p>
                 )}
+              </div>
+            </div>
+
+            {/* Reviews / Rate */}
+            <div className="bg-white rounded-lg p-6 mt-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Rate & Review</h3>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  {[...Array(5)].map((_, i) => (
+                    <button key={i} onClick={() => setRatingValue(i+1)} className="p-0.5">
+                      <Star size={24} className={i < ratingValue ? "text-yellow-400 fill-yellow-400" : "text-gray-300"} />
+                    </button>
+                  ))}
+                  <span className="text-gray-600 ml-2">{ratingValue} / 5</span>
+                </div>
+                <textarea value={reviewText} onChange={(e) => setReviewText(e.target.value)} rows={4} className="w-full border rounded p-3" placeholder="Write your review (optional)" />
+                <div className="flex justify-end">
+                  <button onClick={async () => {
+                    try {
+                      await submitCourseRating(course.id, { rating: ratingValue, review: reviewText });
+                      alert('Thanks for your feedback');
+                      setReviewText('');
+                      fetchReviews(course.id);
+                    } catch (err) {
+                      console.error(err);
+                      alert('Failed to submit review');
+                    }
+                  }} className="px-4 py-2 bg-indigo-600 text-white rounded">Submit</button>
+                </div>
+
+                <div className="mt-6">
+                  <h4 className="font-semibold mb-3">Recent Reviews</h4>
+                  {reviewsLoading ? <p className="text-gray-500">Loading reviews...</p> : (
+                    reviews.length === 0 ? <p className="text-gray-500">No reviews yet</p> : (
+                      reviews.map(r => (
+                        <div key={r.id} className="border rounded p-3 mb-3">
+                          <div className="flex justify-between">
+                            <div className="font-semibold">{r.student_name}</div>
+                            <div className="text-sm text-gray-500">{new Date(r.created_at).toLocaleDateString()}</div>
+                          </div>
+                          <div className="text-yellow-400">{'⭐'.repeat(r.rating)}</div>
+                          <p className="mt-2 text-gray-700">{r.review}</p>
+                        </div>
+                      ))
+                    )
+                  )}
+                </div>
               </div>
             </div>
           </div>

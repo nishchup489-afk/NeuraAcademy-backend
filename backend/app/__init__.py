@@ -7,7 +7,7 @@ from flask_talisman import Talisman
 import os
 from app.models import User
 
-def create_app(config_name = "dev"):
+def create_app(config_name = "deploy"):
     app = Flask(__name__)
 
     if config_name == "dev":
@@ -51,17 +51,24 @@ def create_app(config_name = "dev"):
 
     #blueprints
     from .blueprints.auth.routes import auth_bp
+    from .oauth import init_oauth
     from .blueprints.student.student_dashboard import student_bp
     from .blueprints.profile.routes import profile_bp
     from .blueprints.courses.routes import register_course_blueprints
     from .blueprints.student.routes import student_bp as student_api_bp
+    from .blueprints.chatbot.routes import chatbot_bp
+    from .blueprints.student.student_exam_routes import student_exam_bp
 
 
     #register blueprint
+    # initialize oauth clients (google, github)
+    init_oauth(app)
     app.register_blueprint(auth_bp)
     app.register_blueprint(student_bp)
     app.register_blueprint(student_api_bp)
     app.register_blueprint(profile_bp)
+    app.register_blueprint(chatbot_bp)
     register_course_blueprints(app)
+    app.register_blueprint(student_exam_bp)
 
     return app

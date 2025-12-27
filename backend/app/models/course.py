@@ -42,6 +42,8 @@ class CourseEnrollment(db.Model):
         db.Index('idx_course_enrollments_course_id', 'course_id'),
         db.Index('idx_course_enrollments_student_id', 'student_id'),
     )
+    # Relationship to Course for convenience
+    course = db.relationship("Course", backref=db.backref("enrollments", lazy="dynamic"))
 
 
 # ------------------------
@@ -107,6 +109,40 @@ class Lesson(db.Model):
 
     chapter = db.relationship("Chapter", backref=db.backref("lessons", lazy="dynamic"))
 
+    def is_completed_by_student(self, student_id):
+        """Return True if the student has a completion record for this lesson."""
+        from app.extensions import db
+        # Import here to avoid circular imports at module load
+        rc = LessonCompletion.query.filter_by(lesson_id=self.id, student_id=student_id).first()
+        return bool(rc)
+
+    def mark_completed(self, student_id):
+        """Create a completion record for the student if it doesn't exist and update enrollment progress."""
+        existing = LessonCompletion.query.filter_by(lesson_id=self.id, student_id=student_id).first()
+        if existing:
+            return existing
+
+        lc = LessonCompletion(lesson_id=self.id, student_id=student_id)
+        db.session.add(lc)
+
+        # Update course enrollment progress
+        course_id = self.chapter.course_id
+        enrollment = CourseEnrollment.query.filter_by(student_id=student_id, course_id=course_id).first()
+        if enrollment:
+            # recompute completed lessons for course
+            total_lessons = 0
+            completed = 0
+            for ch in Course.query.get(course_id).chapters:
+                for l in ch.lessons:
+                    total_lessons += 1
+                    if LessonCompletion.query.filter_by(lesson_id=l.id, student_id=student_id).first():
+                        completed += 1
+
+            enrollment.progress_percent = (completed / total_lessons * 100) if total_lessons > 0 else 0
+            enrollment.completed = enrollment.progress_percent >= 100
+
+        return lc
+
 
 # ------------------------
 # Lesson Comments
@@ -127,6 +163,25 @@ class LessonComment(db.Model):
     # Index for performance
     __table_args__ = (
         db.Index('idx_lesson_comments_lesson_id', 'lesson_id'),
+    )
+
+
+# ------------------------
+# Lesson Completion
+# ------------------------
+class LessonCompletion(db.Model):
+    __tablename__ = "lesson_completions"
+
+    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    lesson_id = db.Column(UUID(as_uuid=True), db.ForeignKey("lessons.id"), nullable=False)
+    student_id = db.Column(UUID(as_uuid=True), db.ForeignKey("student_profiles.id"), nullable=False)
+    completed_at = db.Column(db.DateTime, server_default=db.func.now())
+
+    lesson = db.relationship("Lesson", backref=db.backref("completions", lazy="dynamic"))
+
+    __table_args__ = (
+        db.Index('idx_lesson_completions_lesson_id', 'lesson_id'),
+        db.Index('idx_lesson_completions_student_id', 'student_id'),
     )
 
 # ------------------------

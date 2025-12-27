@@ -4,12 +4,15 @@ from app.models import User , TeacherProfile
 from marshmallow import ValidationError
 from app.blueprints.auth.schema import LoginSchema, RegisterSchema , ForgotPasswordSchema , ResetPasswordSchema
 from app.utils.emails import send_confirmation_token , serializer , send_password_reset_token
-from app.config import DevelopmentConfig
+from app.config import DevelopmentConfig , ProductionConfig
 from flask_login import login_user , login_required , current_user , logout_user
 from app.utils.decorators import roles_required
 import random 
 from datetime import datetime
 from argon2.exceptions import VerifyMismatchError
+from app.oauth import oauth
+import os
+from flask import current_app
 
 
 auth_bp = Blueprint("auth" , __name__ , url_prefix="/api/auth")
@@ -182,7 +185,7 @@ def forgot_password():
 @auth_bp.route("/reset_password/<token>" , methods=['POST'])
 def reset_password(token):
     try: 
-        email = serializer.loads(token , salt=DevelopmentConfig.PASSWORD_RESET_SALT , max_age=3600)
+        email = serializer.loads(token , salt=ProductionConfig.PASSWORD_RESET_SALT , max_age=3600)
     except Exception as err:
         return jsonify({"message": "Invalid or expired token"}) , 401
     
@@ -207,7 +210,7 @@ def reset_password(token):
 @auth_bp.route("/confirm/<token>" , methods=['GET'])
 def confirm(token):
     try:
-        email = serializer.loads(token , salt=DevelopmentConfig.EMAIL_TOKEN_SALT , max_age=3600)
+        email = serializer.loads(token , salt=ProductionConfig.EMAIL_TOKEN_SALT , max_age=3600)
     except Exception as e:
         return jsonify({"message" : "Invalid or expired token"}) , 401
     
@@ -239,3 +242,81 @@ def logout():
     logout_user()
     session.clear()
     return jsonify({"message" : "Logged out successfully"})
+
+
+# ----------------------------- OAUTH START ------------------------------------------------
+@auth_bp.route('/oauth/<provider>')
+def oauth_login(provider):
+    role = request.args.get('role', 'student')
+    # front-end URL to return to after flow completes (optional)
+    next_url = request.args.get('next') or os.getenv('FRONTEND_URL', 'http://localhost:5173')
+    # Store values in session to avoid adding query params to redirect_uri (prevents redirect_uri_mismatch)
+    session['oauth_role'] = role
+    session['oauth_next'] = next_url
+    redirect_uri = url_for('auth.oauth_callback', provider=provider, _external=True)
+    # Log the redirect URI and stored session values for debugging redirect_uri_mismatch issues
+    try:
+        current_app.logger.info(f"[OAUTH] provider={provider} redirect_uri={redirect_uri} role={role} next={next_url}")
+    except Exception:
+        print(f"[OAUTH] provider={provider} redirect_uri={redirect_uri} role={role} next={next_url}")
+    if provider == 'google':
+        return oauth.google.authorize_redirect(redirect_uri)
+    if provider == 'github':
+        return oauth.github.authorize_redirect(redirect_uri)
+    return jsonify({'message': 'Unsupported provider'}), 400
+
+
+@auth_bp.route('/oauth/<provider>/callback')
+def oauth_callback(provider):
+    # provider callback: fetch token and user info, create or login user
+    # retrieve role/next from session (set in oauth_login) to avoid relying on query params
+    role = session.pop('oauth_role', request.args.get('role', 'student'))
+    next_url = session.pop('oauth_next', None) or os.getenv('FRONTEND_URL', 'http://localhost:5173')
+    try:
+        current_app.logger.info(f"[OAUTH CALLBACK] provider={provider} role={role} next={next_url}")
+    except Exception:
+        print(f"[OAUTH CALLBACK] provider={provider} role={role} next={next_url}")
+
+    try:
+        if provider == 'google':
+            token = oauth.google.authorize_access_token()
+            user_info = oauth.google.parse_id_token(token)
+            email = user_info.get('email')
+            name = user_info.get('name')
+        elif provider == 'github':
+            token = oauth.github.authorize_access_token()
+            resp = oauth.github.get('user', token=token)
+            profile = resp.json()
+            # fetch primary email if not public
+            email = profile.get('email')
+            if not email:
+                emails = oauth.github.get('user/emails', token=token).json()
+                primary = next((e for e in emails if e.get('primary') and e.get('verified')), None)
+                email = primary.get('email') if primary else emails[0].get('email')
+            name = profile.get('name') or profile.get('login')
+        else:
+            return jsonify({'message': 'Unsupported provider'}), 400
+    except Exception as e:
+        return jsonify({'message': 'OAuth failed', 'error': str(e)}), 400
+
+    if not email:
+        return jsonify({'message': 'No email returned by provider'}), 400
+
+    # find or create user
+    user = User.query.filter_by(email=email).first()
+    created = False
+    if not user:
+        # create new user and mark email confirmed
+        user = User(email=email, username=(name or email.split('@')[0]), password=os.urandom(16).hex(), role=role, email_confirmed=True)
+        db.session.add(user)
+        db.session.commit()
+        created = True
+
+    # login user
+    login_user(user, remember=True)
+    session['role'] = user.role
+    session['user_id'] = str(user.id)
+    session.permanent = True
+
+    # redirect to frontend next_url so front-end can check profile
+    return redirect(next_url)

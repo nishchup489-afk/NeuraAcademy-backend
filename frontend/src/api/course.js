@@ -7,6 +7,9 @@ export const createCourse = (data) =>
 export const publishCourse = (courseId) =>
   api.post(`/teacher/courses/${courseId}/publish`);
 
+export const archiveCourse = (courseId) =>
+  api.post(`/teacher/courses/${courseId}/archive`);
+
 // Chapter APIs
 export const getChapters = (courseId) =>
   api.get(`/teacher/courses/${courseId}/chapters`);
@@ -19,6 +22,9 @@ export const updateChapter = (courseId, chapterId, data) =>
 
 export const deleteChapter = (courseId, chapterId) =>
   api.delete(`/teacher/courses/${courseId}/chapters/${chapterId}`);
+
+export const publishChapter = (courseId, chapterId) =>
+  api.post(`/teacher/courses/${courseId}/chapters/${chapterId}/publish`);
 
 // Lesson APIs
 export const getLessons = (chapterId) =>
@@ -33,11 +39,30 @@ export const updateLesson = (chapterId, lessonId, data) =>
 export const deleteLesson = (chapterId, lessonId) =>
   api.delete(`/teacher/chapters/${chapterId}/lessons/${lessonId}`);
 
+export const publishLesson = (chapterId, lessonId) =>
+  api.post(`/teacher/chapters/${chapterId}/lessons/${lessonId}/publish`);
+
 export const getLessonContent = (lessonId) =>
   api.get(`/teacher/lessons/${lessonId}/content`);
 
 export const updateLessonContent = (lessonId, data) =>
   api.patch(`/teacher/lessons/${lessonId}/content`, data);
+
+// Student-facing comment/rating APIs
+export const getLessonComments = (lessonId) =>
+  api.get(`/student/lessons/${lessonId}/comments`);
+
+export const createLessonComment = (lessonId, data) =>
+  api.post(`/student/lessons/${lessonId}/comments`, data);
+
+export const deleteLessonComment = (commentId) =>
+  api.delete(`/student/lessons/comments/${commentId}`);
+
+export const submitCourseRating = (courseId, data) =>
+  api.post(`/student/courses/${courseId}/rating`, data);
+
+export const getCourseReviews = (courseId) =>
+  api.get(`/student/courses/${courseId}/reviews`);
 
 // Exam APIs
 export const getExams = (courseId) =>
@@ -77,3 +102,11 @@ export const getTeacherDashboard = () =>
 
 export const getCourseStudents = (courseId) =>
   api.get(`/teacher/analytics/courses/${courseId}/students`);
+
+export const updateCourse = (courseId, data) =>
+  api.put(`/teacher/courses/${courseId}`, data);
+
+export const uploadCourseThumbnail = (courseId, formData) =>
+  api.post(`/teacher/courses/${courseId}/thumbnail`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });

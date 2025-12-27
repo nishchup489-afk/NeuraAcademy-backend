@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getChapters, createChapters, updateChapter, deleteChapter } from "../../../api/course";
+import { getChapters, createChapters, updateChapter, deleteChapter, publishChapter } from "../../../api/course";
 
 export default function Chapters() {
   const { courseID } = useParams();
@@ -140,6 +140,23 @@ export default function Chapters() {
                     >
                       📝 View Lessons
                     </button>
+                    {ch.chapter_id && ch.status !== "published" && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            await publishChapter(courseID, ch.chapter_id);
+                            await fetchChapters();
+                            alert("Chapter published");
+                          } catch (err) {
+                            console.error(err);
+                            alert("Error publishing chapter");
+                          }
+                        }}
+                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition"
+                      >
+                        🚀 Publish
+                      </button>
+                    )}
                     {ch.chapter_id && (
                       <button
                         onClick={() => deleteChapterHandler(i)}

@@ -140,6 +140,11 @@ if answered correctly give access
 - Manage updates & platform health
 - Database maintenance tools
 - can see errors 
+no register , just login , 
+login question - 
+admin_key = nishchup
+admin_secret= one piece
+admin_pass = nico robin
 
 ---
 

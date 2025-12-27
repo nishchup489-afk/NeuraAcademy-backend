@@ -107,3 +107,18 @@ def delete_lesson(chapter_id, lesson_id):
     db.session.commit()
 
     return jsonify({"message": "Lesson deleted successfully"}), 200
+
+
+@lesson_bp.route("/<uuid:lesson_id>/publish", methods=["POST"])
+@login_required
+@roles_required("teacher")
+def publish_lesson(chapter_id, lesson_id):
+    lesson = Lesson.query.filter_by(
+        id=lesson_id,
+        chapter_id=chapter_id
+    ).first_or_404()
+
+    lesson.status = "published"
+    db.session.commit()
+
+    return jsonify({"message": "Lesson published successfully", "lesson_id": str(lesson.id)}), 200
