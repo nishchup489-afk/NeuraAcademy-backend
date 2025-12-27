@@ -3,7 +3,7 @@ from app.extensions import db, ph
 from app.models import User , TeacherProfile
 from marshmallow import ValidationError
 from app.blueprints.auth.schema import LoginSchema, RegisterSchema , ForgotPasswordSchema , ResetPasswordSchema
-from app.utils.emails import send_confirmation_token , serializer , send_password_reset_token
+from app.utils.emails import send_confirmation_url, send_password_reset_url, get_serializer
 from app.config import DevelopmentConfig , ProductionConfig
 from flask_login import login_user , login_required , current_user , logout_user
 from app.utils.decorators import roles_required
@@ -131,7 +131,7 @@ def register_with_role(expected_role):
     db.session.add(user)
     db.session.commit()
 
-    send_confirmation_token(user)
+    send_confirmation_url(user)
 
     return jsonify({
         "message": "Check your email to confirm your account"
@@ -173,7 +173,7 @@ def forgot_password():
         return jsonify({"message" : "The email was never confirmed"}) , 403
 
     if user:
-        send_password_reset_token(user) 
+        send_password_reset_url(user) 
         
         return jsonify({"message" : "Password reset email was sent"})   , 200
 
@@ -185,6 +185,7 @@ def forgot_password():
 @auth_bp.route("/reset_password/<token>" , methods=['POST'])
 def reset_password(token):
     try: 
+        serializer = get_serializer()
         email = serializer.loads(token , salt=ProductionConfig.PASSWORD_RESET_SALT , max_age=3600)
     except Exception as err:
         return jsonify({"message": "Invalid or expired token"}) , 401
@@ -210,6 +211,7 @@ def reset_password(token):
 @auth_bp.route("/confirm/<token>" , methods=['GET'])
 def confirm(token):
     try:
+        serializer = get_serializer()
         email = serializer.loads(token , salt=ProductionConfig.EMAIL_TOKEN_SALT , max_age=3600)
     except Exception as e:
         return jsonify({"message" : "Invalid or expired token"}) , 401
