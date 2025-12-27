@@ -1,14 +1,11 @@
 import axios from "axios";
 
-const api = axios.create(
-    {
-        baseURL : "http://localhost:5000/api" ,  // TODO: import.meta.env.VITE_API_URL in production
-        // headers : {
-        //     "Content-Type" : "application/json"
-        // },
-        withCredentials: true
-    }
-)
+const BASE = import.meta?.env?.VITE_API_URL || "http://localhost:5000"
+
+const api = axios.create({
+    baseURL: `${BASE}/api`,
+    withCredentials: true,
+})
 
 export default api; 
 
