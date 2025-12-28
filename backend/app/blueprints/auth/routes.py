@@ -66,10 +66,13 @@ def login_with_role(expected_role):
                     }) , 200
 
 
-@login_required
 @auth_bp.route("/check_profile", methods=["GET"])
 def check_profile():
-    role = current_user.role
+    # If user is not authenticated, report that no profile exists.
+    if not getattr(current_user, "is_authenticated", False):
+        return jsonify({"profile_exists": False}), 200
+
+    role = getattr(current_user, "role", None)
     profile_attr_map = {
         "student": "student_profile",
         "teacher": "teacher_profile",
@@ -77,10 +80,8 @@ def check_profile():
     }
     profile_attr = profile_attr_map.get(role)
     profile = getattr(current_user, profile_attr, None)
-    
-    return jsonify({
-        "profile_exists": bool(profile)
-    }), 200
+
+    return jsonify({"profile_exists": bool(profile)}), 200
 
 # ------------------------------------- student login --------------------------------
 @auth_bp.route("/login/student" , methods=['POST'])
