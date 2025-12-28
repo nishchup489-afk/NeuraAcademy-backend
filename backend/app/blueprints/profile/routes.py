@@ -26,7 +26,6 @@ def handle_profile_update( * ,
                           model_class ,
                           allowed_role ,
                           extra_fields_handlar = None  ):
-    # Debug: log origin, cookies, and auth state for incoming profile requests
     try:
         current_app.logger.info(
             f"[PROFILE] origin={request.headers.get('Origin')} cookies={dict(request.cookies)} auth={getattr(current_user, 'is_authenticated', False)} user_id={getattr(current_user, 'id', None)} role={getattr(current_user, 'role', None)}"

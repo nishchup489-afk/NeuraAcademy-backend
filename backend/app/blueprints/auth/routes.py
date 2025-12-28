@@ -246,6 +246,19 @@ def confirm(token):
                     "role_id" : student_id }), 200
 
 
+# Debug endpoint: return whether the incoming request is authenticated
+@auth_bp.route('/status', methods=['GET'])
+def auth_status():
+    try:
+        return jsonify({
+            'authenticated': bool(getattr(current_user, 'is_authenticated', False)),
+            'user_id': getattr(current_user, 'id', None),
+            'role': getattr(current_user, 'role', None)
+        }), 200
+    except Exception:
+        return jsonify({'authenticated': False}), 200
+
+
 #----------------------------- logout -----------------------------------
 @auth_bp.route("/logout" , methods=["GET" , "POST"])
 @login_required
