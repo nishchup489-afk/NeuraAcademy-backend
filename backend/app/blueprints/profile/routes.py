@@ -1,4 +1,4 @@
-from flask import Blueprint , jsonify , request 
+from flask import Blueprint , jsonify , request , current_app
 from app.extensions import db 
 from app.utils.cloudinary import upload_profile
 from app.models import StudentProfile , TeacherProfile , ParentProfile , ParentStudentLink
@@ -26,6 +26,13 @@ def handle_profile_update( * ,
                           model_class ,
                           allowed_role ,
                           extra_fields_handlar = None  ):
+    # Debug: log origin, cookies, and auth state for incoming profile requests
+    try:
+        current_app.logger.info(
+            f"[PROFILE] origin={request.headers.get('Origin')} cookies={dict(request.cookies)} auth={getattr(current_user, 'is_authenticated', False)} user_id={getattr(current_user, 'id', None)} role={getattr(current_user, 'role', None)}"
+        )
+    except Exception:
+        print("[PROFILE] debug:", request.headers.get('Origin'), dict(request.cookies), getattr(current_user, 'is_authenticated', False), getattr(current_user, 'id', None), getattr(current_user, 'role', None))
     if allowed_role and current_user.role != allowed_role:
         return jsonify({"error": "Unauthorized role"}), 403
 

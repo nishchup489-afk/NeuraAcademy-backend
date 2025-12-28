@@ -57,6 +57,14 @@ def login_with_role(expected_role):
     user.last_login = datetime.utcnow()
     db.session.commit()
 
+    # Debug: log request origin and cookies so we can trace missing session issues
+    try:
+        current_app.logger.info(
+            f"[AUTH LOGIN] origin={request.headers.get('Origin')} cookies={dict(request.cookies)} user_id={user.id} role={user.role}"
+        )
+    except Exception:
+        print("[AUTH LOGIN] debug:", request.headers.get('Origin'), dict(request.cookies), user.id, user.role)
+
     return jsonify({"message" : "Login successful" , 
                     "user" : {
                         "id" : user.id , 

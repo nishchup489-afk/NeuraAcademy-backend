@@ -23,15 +23,21 @@ def create_app(config_name = "deploy"):
 
     
 
-    #cors origin
-    origin = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+    # cors origin(s) - trim whitespace and include FRONTEND_URL if set
+    raw_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173")
+    origin = [o.strip() for o in raw_origins.split(",") if o.strip()]
+    frontend_url = os.getenv("FRONTEND_URL")
+    if frontend_url:
+        fu = frontend_url.strip()
+        if fu and fu not in origin:
+            origin.append(fu)
 
     #initialization 
     db.init_app(app)
     migrate.init_app(app , db)
     mail.init_app(app)
     login_manager.init_app(app)
-    cors.init_app( app , supports_credentials=True , origins=origin)
+    cors.init_app(app, supports_credentials=True, origins=origin)
     limiter.init_app(app)
     Talisman(app, content_security_policy=None)
 
