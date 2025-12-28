@@ -36,7 +36,8 @@ class BaseConfig:
     # Session
     SESSION_COOKIE_NAME = "neuraacademy_session"
     SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = None
+    # Use the string 'None' to ensure browsers send the cookie for cross-site requests
+    SESSION_COOKIE_SAMESITE = 'None'
     SESSION_COOKIE_SECURE = False
     SESSION_COOKIE_DOMAIN = None
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
