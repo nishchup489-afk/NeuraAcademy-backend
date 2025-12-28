@@ -71,8 +71,6 @@ def create_app(config_name = "deploy"):
     from .blueprints.student.student_exam_routes import student_exam_bp
 
 
-    #register blueprint
-    # initialize oauth clients (google, github)
     init_oauth(app)
     app.register_blueprint(auth_bp)
     app.register_blueprint(student_bp)

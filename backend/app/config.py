@@ -53,6 +53,8 @@ class DevelopmentConfig(BaseConfig):
 class ProductionConfig(BaseConfig):
     SESSION_COOKIE_SECURE = True
     OAUTHLIB_INSECURE_TRANSPORT = False
+    # Ensure browsers allow cross-site cookies from the API when needed
+    SESSION_COOKIE_SAMESITE = 'None'
 
 
 class TestingConfig(BaseConfig):
