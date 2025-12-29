@@ -202,16 +202,34 @@
   border: 1px solid var(--border);
   font-weight: 700;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--text-dark);
+  background: transparent;
+  transition: all 0.2s;
 }
 
 .auth-oauth-button.google {
   background: white;
+  color: var(--text-dark);
+  border-color: var(--border);
+  box-shadow: 0 4px 10px rgba(2,6,23,0.04);
+}
+
+.auth-oauth-button.google:hover {
+  background: #f1f5f9;
 }
 
 .auth-oauth-button.github {
   background: #111827;
   color: white;
   border-color: #111827;
+}
+
+.auth-oauth-button.github:hover {
+  background: #0f1724;
 }
 
 .role-selector {
