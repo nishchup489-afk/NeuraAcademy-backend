@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/auth/confirm/:token", "destination": "/index.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
