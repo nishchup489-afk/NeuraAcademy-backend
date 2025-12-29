@@ -42,6 +42,17 @@ class BaseConfig:
     SESSION_COOKIE_DOMAIN = None
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
 
+    # Flask-Login remember cookie settings (ensure cross-site behavior matches session cookie)
+    REMEMBER_COOKIE_NAME = "remember_token"
+    REMEMBER_COOKIE_DURATION = timedelta(days=30)
+    REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_SAMESITE = 'None'
+    REMEMBER_COOKIE_SECURE = False
+
+    # Optional: enable server-side enforcement to rewrite Set-Cookie attributes
+    # when running behind proxies or in environments that alter cookie attributes.
+    ENFORCE_SAMESITE_NONE = False
+
     # OAuth
     OAUTHLIB_INSECURE_TRANSPORT = True
 
@@ -55,6 +66,9 @@ class ProductionConfig(BaseConfig):
     OAUTHLIB_INSECURE_TRANSPORT = False
     # Ensure browsers allow cross-site cookies from the API when needed
     SESSION_COOKIE_SAMESITE = 'None'
+    REMEMBER_COOKIE_SAMESITE = 'None'
+    REMEMBER_COOKIE_SECURE = True
+    ENFORCE_SAMESITE_NONE = True
 
 
 class TestingConfig(BaseConfig):

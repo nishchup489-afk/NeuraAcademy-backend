@@ -80,4 +80,28 @@ def create_app(config_name = "deploy"):
     register_course_blueprints(app)
     app.register_blueprint(student_exam_bp)
 
+    # Enforce SameSite=None; Secure on cookies when configured to do so.
+    # Some hosting environments or proxies can rewrite cookie attributes; this
+    # hook ensures cross-site cookies are usable for the SPA when in production.
+    if app.config.get("ENFORCE_SAMESITE_NONE"):
+        @app.after_request
+        def rewrite_samesite_secure(response):
+            cookies = response.headers.getlist("Set-Cookie")
+            if not cookies:
+                return response
+            new_cookies = []
+            for c in cookies:
+                # remove existing SameSite and Secure attributes and re-append them
+                parts = [p for p in c.split(";") if not p.strip().lower().startswith("samesite=") and p.strip().lower() != "secure"]
+                # ensure SameSite=None and Secure present
+                parts.append("SameSite=None")
+                parts.append("Secure")
+                new_cookies.append("; ".join(parts))
+
+            # remove all Set-Cookie and re-add
+            del response.headers["Set-Cookie"]
+            for nc in new_cookies:
+                response.headers.add("Set-Cookie", nc)
+            return response
+
     return app
