@@ -107,8 +107,8 @@
 .auth-button {
   width: 100%;
   padding: 0.85rem;
-  background: var(--primary);
-  color: black;
+  background: #4f46e5;
+  color: white;
   border: none;
   border-radius: 8px;
   font-weight: 700;
