@@ -259,6 +259,28 @@ def auth_status():
         return jsonify({'authenticated': False}), 200
 
 
+# Debug: echo request cookies and headers to help diagnose cross-site cookie issues
+@auth_bp.route('/debug/request', methods=['GET'])
+def debug_request():
+    try:
+        cookies = dict(request.cookies)
+    except Exception:
+        cookies = {}
+    # Pick a few headers useful for diagnosing CORS/cookie issues
+    hdrs = {
+        'Origin': request.headers.get('Origin'),
+        'Referer': request.headers.get('Referer'),
+        'CookieHeader': request.headers.get('Cookie'),
+        'User-Agent': request.headers.get('User-Agent')
+    }
+    return jsonify({
+        'authenticated': bool(getattr(current_user, 'is_authenticated', False)),
+        'user_id': getattr(current_user, 'id', None),
+        'cookies_received': cookies,
+        'headers': hdrs
+    }), 200
+
+
 #----------------------------- logout -----------------------------------
 @auth_bp.route("/logout" , methods=["GET" , "POST"])
 @login_required
