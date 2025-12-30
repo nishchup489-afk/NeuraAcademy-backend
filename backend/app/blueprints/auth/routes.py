@@ -281,6 +281,22 @@ def debug_request():
     }), 200
 
 
+@auth_bp.route('/debug/config', methods=['GET'])
+def debug_config():
+    # Return server cookie-related configuration so we can verify what's active
+    cfg = {
+        'SESSION_COOKIE_SAMESITE': current_app.config.get('SESSION_COOKIE_SAMESITE'),
+        'SESSION_COOKIE_SECURE': current_app.config.get('SESSION_COOKIE_SECURE'),
+        'REMEMBER_COOKIE_SAMESITE': current_app.config.get('REMEMBER_COOKIE_SAMESITE'),
+        'REMEMBER_COOKIE_SECURE': current_app.config.get('REMEMBER_COOKIE_SECURE'),
+        'ENFORCE_SAMESITE_NONE': current_app.config.get('ENFORCE_SAMESITE_NONE'),
+        'SESSION_COOKIE_DOMAIN': current_app.config.get('SESSION_COOKIE_DOMAIN'),
+        'FRONTEND_URL': current_app.config.get('FRONTEND_URL'),
+        'CORS_ORIGINS_ENV': os.getenv('CORS_ORIGINS')
+    }
+    return jsonify(cfg), 200
+
+
 #----------------------------- logout -----------------------------------
 @auth_bp.route("/logout" , methods=["GET" , "POST"])
 @login_required

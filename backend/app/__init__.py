@@ -6,6 +6,7 @@ from .config import BaseConfig , TestingConfig , ProductionConfig , DevelopmentC
 from flask_talisman import Talisman
 import os
 from app.models import User
+from uuid import UUID
 
 def create_app(config_name = "deploy"):
     app = Flask(__name__)
@@ -54,7 +55,38 @@ def create_app(config_name = "deploy"):
 
     @login_manager.user_loader
     def load_user(user_id):
-        return db.session.get(User , (user_id))
+        # Robust loader: try direct get, attempt UUID conversion, then fallback to query
+        try:
+            current_app.logger.info(f"[LOAD_USER] raw_id={user_id} type={type(user_id)}")
+        except Exception:
+            pass
+
+        try:
+            # direct get (works when id type matches PK type)
+            user = db.session.get(User, user_id)
+            if user:
+                return user
+        except Exception:
+            # ignore and try fallbacks
+            pass
+
+        # try converting to UUID instance (some DB PKs are UUID objects)
+        try:
+            uid = UUID(str(user_id))
+            try:
+                user = db.session.get(User, uid)
+                if user:
+                    return user
+            except Exception:
+                pass
+        except Exception:
+            pass
+
+        # final fallback: query by string representation
+        try:
+            return User.query.filter_by(id=str(user_id)).first()
+        except Exception:
+            return None
 
 
 
