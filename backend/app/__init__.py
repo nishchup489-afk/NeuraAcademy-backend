@@ -18,6 +18,15 @@ def create_app(config_name = "deploy"):
     elif config_name == "deploy":
         app.config.from_object(ProductionConfig)
 
+    # If server-side enforcement for SameSite=None is enabled, ensure Flask
+    # cookie config values are explicitly set so responses use SameSite=None
+    # and Secure for cross-site cookies.
+    if app.config.get("ENFORCE_SAMESITE_NONE"):
+        app.config["SESSION_COOKIE_SAMESITE"] = 'None'
+        app.config["SESSION_COOKIE_SECURE"] = True
+        app.config["REMEMBER_COOKIE_SAMESITE"] = 'None'
+        app.config["REMEMBER_COOKIE_SECURE"] = True
+
     @app.route("/", methods=["GET", "HEAD"])
     def health():
         return {"status": "ok", "service": "NeuraAcademy API"}, 200
