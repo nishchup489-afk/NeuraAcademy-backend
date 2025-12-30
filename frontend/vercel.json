@@ -1,7 +1,6 @@
 {
   "rewrites": [
     { "source": "/auth/confirm/:token", "destination": "/index.html" },
-    { "source": "/api/:path*", "destination": "https://neuraacademy.onrender.com/:path*" },
-    { "source": "(.*)", "destination": "/index.html" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
