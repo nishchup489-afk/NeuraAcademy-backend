@@ -37,7 +37,7 @@ class BaseConfig:
     SESSION_COOKIE_NAME = "neuraacademy_session"
     SESSION_COOKIE_HTTPONLY = True
     # Use the string 'None' to ensure browsers send the cookie for cross-site requests
-    SESSION_COOKIE_SAMESITE = 'None'
+    SESSION_COOKIE_SAMESITE = 'Lax'
     SESSION_COOKIE_SECURE = False
     SESSION_COOKIE_DOMAIN = None
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
@@ -46,7 +46,7 @@ class BaseConfig:
     REMEMBER_COOKIE_NAME = "remember_token"
     REMEMBER_COOKIE_DURATION = timedelta(days=30)
     REMEMBER_COOKIE_HTTPONLY = True
-    REMEMBER_COOKIE_SAMESITE = 'None'
+    REMEMBER_COOKIE_SAMESITE = 'Lax'
     REMEMBER_COOKIE_SECURE = False
 
     # Optional: enable server-side enforcement to rewrite Set-Cookie attributes
@@ -63,11 +63,10 @@ class DevelopmentConfig(BaseConfig):
 
 class ProductionConfig(BaseConfig):
     SESSION_COOKIE_SECURE = True
-    OAUTHLIB_INSECURE_TRANSPORT = False
-    # Ensure browsers allow cross-site cookies from the API when needed
     SESSION_COOKIE_SAMESITE = 'None'
-    REMEMBER_COOKIE_SAMESITE = 'None'
     REMEMBER_COOKIE_SECURE = True
+    REMEMBER_COOKIE_SAMESITE = 'None'
+    OAUTHLIB_INSECURE_TRANSPORT = False
     ENFORCE_SAMESITE_NONE = True
 
 
